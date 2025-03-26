@@ -1,0 +1,87 @@
+service: authsignal-headless-example
+
+plugins:
+  - serverless-esbuild
+
+useDotenv: true
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  environment:
+    AUTHSIGNAL_SECRET: ${env:AUTHSIGNAL_SECRET}
+    AUTHSIGNAL_URL: ${env:AUTHSIGNAL_URL}
+  httpApi:
+    cors: true
+    authorizers:
+      jwtAuthorizer:
+        type: jwt
+        identitySource: $request.header.authorization
+        issuerUrl: https://cognito-idp.us-west-2.amazonaws.com/${env:USER_POOL_ID}
+        audience:
+          - ${env:USER_POOL_CLIENT_ID}
+
+functions:
+  authorizePayment:
+    handler: authorize-payment/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+    events:
+      - httpApi:
+          method: post
+          path: /payments/authorize
+          authorizer:
+            name: jwtAuthorizer
+
+  addAuthenticator:
+    handler: add-authenticator/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+    events:
+      - httpApi:
+          method: post
+          path: /authenticators
+          authorizer:
+            name: jwtAuthorizer
+
+  removeAuthenticator:
+    handler: remove-authenticator/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+    events:
+      - httpApi:
+          method: delete
+          path: /authenticators/{user_authenticator_id}
+          authorizer:
+            name: jwtAuthorizer
+
+  getAuthenticators:
+    handler: get-authenticators/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+    events:
+      - httpApi:
+          method: get
+          path: /authenticators
+          authorizer:
+            name: jwtAuthorizer
+
+  createAuthChallenge:
+    handler: create-auth-challenge/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+
+  defineAuthChallenge:
+    handler: define-auth-challenge/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+
+  verifyAuthChallengeResponse:
+    handler: verify-auth-challenge-response/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+
+  postConfirmationTrigger:
+    handler: post-confirmation-trigger/handler.handler
+    role: ${ssm:cloudwatch-role-arn}
+
+custom:
+  esbuild:
+    packager: yarn
+    packagePath: ./package.json

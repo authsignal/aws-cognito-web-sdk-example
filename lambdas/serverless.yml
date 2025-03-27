@@ -77,8 +77,8 @@ functions:
     handler: verify-auth-challenge-response/handler.handler
     role: ${ssm:cloudwatch-role-arn}
 
-  postConfirmationTrigger:
-    handler: post-confirmation-trigger/handler.handler
+  preSignUp:
+    handler: pre-sign-up/handler.handler
     role: ${ssm:cloudwatch-role-arn}
 
 custom:

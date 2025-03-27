@@ -5,10 +5,11 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {useLocation, useNavigate} from "react-router-dom";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useToast} from "@/hooks/use-toast";
 import {InputOTP, InputOTPGroup, InputOTPSlot} from "@/components/ui/input-otp";
-import {confirmSignUp, resendSignUpCode, signIn, setTokens} from "@/lib/aws-auth";
+import {authsignal} from "@/lib/authsignal";
+import {respondToChallenge, setTokens} from "@/lib/aws-auth";
 
 const formSchema = z.object({
   code: z.string().min(6, {message: "Enter a valid code"}),
@@ -20,6 +21,15 @@ export function ConfirmSignUp() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    if (!location.state?.email || !location.state?.session || !location.state?.token) {
+      navigate("/sign-up");
+      return;
+    }
+    
+    authsignal.setToken(location.state.token);
+  }, [location.state, navigate]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -28,7 +38,12 @@ export function ConfirmSignUp() {
   });
 
   const handleResendCode = async () => {
-    await resendSignUpCode(location.state.email);
+    if (!location.state?.email) {
+      navigate("/sign-up");
+      return;
+    }
+
+    await authsignal.email.enroll({email: location.state.email});
 
     toast({
       title: "Code sent",
@@ -37,37 +52,54 @@ export function ConfirmSignUp() {
   };
 
   const onSubmit = form.handleSubmit(async ({code}) => {
+    if (!location.state?.email || !location.state?.session) {
+      navigate("/sign-up");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const {nextStep} = await confirmSignUp(location.state.email, code);
+      const {data, error} = await authsignal.email.verify({code});
 
-      if (nextStep === "SIGN_IN") {
-        // Auto sign-in after confirmation
-        const signInResult = await signIn({
-          username: location.state.email,
-        });
+      if (data?.token && !error) {
+        const challengeResult = await respondToChallenge(
+          location.state.email,
+          location.state.session,
+          data.token
+        );
 
-        if (signInResult.nextStep === "SIGN_IN_COMPLETE" && signInResult.tokens) {
-          setTokens(signInResult.tokens);
+        if (challengeResult.nextStep === "SIGN_IN_COMPLETE" && challengeResult.tokens) {
+          setTokens(challengeResult.tokens);
           navigate("/account/security");
-        } else if (signInResult.nextStep === "CUSTOM_CHALLENGE") {
-          const token = signInResult.challengeParameters?.token;
-          navigate("/mfa", {state: {token, email: location.state.email}});
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to complete sign in",
+          });
         }
-      }
-    } catch (ex) {
-      if (ex instanceof Error) {
+      } else {
         toast({
           variant: "destructive",
           title: "Error",
-          description: ex.message,
+          description: "Failed to verify code",
         });
       }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to verify code",
+      });
     }
 
     setIsLoading(false);
   });
+
+  if (!location.state?.email) {
+    return null;
+  }
 
   return (
     <>

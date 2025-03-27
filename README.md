@@ -1,50 +1,106 @@
-# React + TypeScript + Vite
+<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/aws-cognito-web-sdk-example
+/main/.github/images/authsignal.png">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# How to add MFA to AWS Cognito using AWS SDK and Authsignal
 
-Currently, two official plugins are available:
+This project demonstrates how to integrate AWS Cognito with Authsignal's MFA capabilities for secure authentication.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Overview
 
-## Expanding the ESLint configuration
+The integration uses:
+- AWS Cognito as the identity provider
+- Authsignal for MFA verification
+- AWS Lambda triggers to connect the services
+- React frontend for user interaction
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Features
 
-- Configure the top-level `parserOptions` property like this:
+- MFA for both sign-up and sign-in flows
+- Multiple authentication methods:
+  - Email OTP
+  - Email Magic Links
+  - TOTP (Authenticator Apps)
+  - Passkeys (WebAuthn)
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js
+- AWS Account
+- Authsignal Account
+
+### Environment Variables
+
+1. Create a `.env` file in the root directory:
+
+```
+AUTHSIGNAL_SECRET=your_authsignal_secret_key
+AUTHSIGNAL_URL=https://api.authsignal.com
+USER_POOL_CLIENT_ID=your_cognito_user_pool_client_id
+AWS_REGION=your_aws_region
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Create a `.env` file in the `lambdas` directory:
 
-```js
-// eslint.config.js
-import react from "eslint-plugin-react";
-
-export default tseslint.config({
-  // Set the react version
-  settings: {react: {version: "18.3"}},
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs["jsx-runtime"].rules,
-  },
-});
 ```
+AUTHSIGNAL_SECRET=your_authsignal_secret_key
+AUTHSIGNAL_URL=https://api.authsignal.com
+USER_POOL_CLIENT_ID=your_cognito_user_pool_client_id
+```
+
+### Installation
+
+1. Install dependencies:
+```
+yarn install
+```
+
+2. Install Lambda dependencies:
+```
+cd lambdas
+yarn install
+cd ..
+```
+
+### Running the Project
+
+1. Start the frontend development server:
+```
+yarn dev
+```
+
+2. Deploy Lambda functions to AWS:
+```
+cd lambdas
+yarn deploy
+```
+
+## Implementation Details
+
+### Backend Components
+
+The integration uses Lambda functions for authentication flow:
+
+1. **Pre-Sign-Up Lambda**: Auto-confirms users during registration
+2. **Create Auth Challenge**: Generates Authsignal tokens for verification
+3. **Verify Auth Challenge Response**: Validates user responses
+
+### Frontend Flows
+
+- **Sign-Up**: Collects email, creates user account, and verifies identity
+- **Sign-In**: Authenticates returning users with MFA
+- **Account Management**: Allows users to add/remove authenticators
+
+## Authentication Methods
+
+Users can authenticate with:
+
+1. **Email OTP**: Codes sent via email
+2. **Email Magic Links**: One-click verification links
+3. **TOTP**: Time-based codes from authenticator apps
+4. **Passkeys**: Biometric and device-based authentication
+
+## Conclusion
+
+This implementation provides a secure, flexible authentication system that balances security with user experience. The AWS SDK and Authsignal integration gives full control over authentication flows and UI design.

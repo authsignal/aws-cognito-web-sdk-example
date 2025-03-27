@@ -14,7 +14,6 @@ const client = new CognitoIdentityProviderClient({
   region: import.meta.env.VITE_AWS_REGION || "us-west-2",
 });
 
-const USER_POOL_ID = import.meta.env.VITE_USER_POOL_ID!;
 const CLIENT_ID = import.meta.env.VITE_USER_POOL_CLIENT_ID!;
 
 interface SignUpParams {
@@ -151,6 +150,7 @@ export async function respondToChallenge(
 }
 
 export async function getCurrentUser() {
+  // eslint-disable-next-line no-useless-catch
   try {
     const command = new GetUserCommand({
       AccessToken: await getAccessToken(),

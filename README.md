@@ -1,5 +1,4 @@
-<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/aws-cognito-web-sdk-example
-/main/.github/images/authsignal.png">
+<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/aws-cognito-web-sdk-example/main/.github/images/authsignal.png">
 
 # How to add MFA to AWS Cognito using AWS SDK and Authsignal
 

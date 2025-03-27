@@ -29,15 +29,13 @@ export async function addAuthenticator(): Promise<{authsignalToken: string}> {
   return response;
 }
 
-export async function removeAuthenticator(userAuthenticatorId: string): Promise<{success: string}> {
+export async function removeAuthenticator(userAuthenticatorId: string): Promise<void> {
   const accessToken = await getCognitoAccessToken();
 
-  const response = await fetch(`${url}/${userAuthenticatorId}`, {
+  await fetch(`${url}/${userAuthenticatorId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
-  }).then((res) => res.json());
-
-  return response;
+  });
 }

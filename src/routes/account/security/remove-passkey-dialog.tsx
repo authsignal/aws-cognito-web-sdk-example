@@ -34,22 +34,15 @@ export function RemovePasskeyDialog({passkey}: RemovePasskeyDialog) {
   const handleRemovePasskey = async () => {
     setIsLoading(true);
 
-    const {success} = await removeAuthenticator(passkey.userAuthenticatorId);
+    await removeAuthenticator(passkey.userAuthenticatorId);
 
-    if (success) {
-      queryClient.invalidateQueries({queryKey: ["authenticators"]});
+    queryClient.invalidateQueries({queryKey: ["authenticators"]});
 
-      setIsOpen(false);
+    setIsOpen(false);
 
-      toast({
-        title: `Your ${name} has been removed`,
-      });
-    } else {
-      toast({
-        title: `There was an error removing your ${name}`,
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: `Your ${name} has been removed`,
+    });
 
     setIsLoading(false);
   };

@@ -104,6 +104,12 @@ export function Login() {
 
       if (signInResult.nextStep === "CUSTOM_CHALLENGE") {
         const token = signInResult.challengeParameters?.token;
+        
+        if (token) {
+          authsignal.setToken(token);
+          await authsignal.email.challenge();
+        }
+        
         navigate("/mfa", {state: {token, email, session: signInResult.session}});
       }
     } catch (ex) {

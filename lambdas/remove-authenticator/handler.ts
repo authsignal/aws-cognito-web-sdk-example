@@ -13,7 +13,5 @@ export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) =>
 
   const userId = claims.sub as string;
 
-  const res = await authsignal.deleteAuthenticator({userId, userAuthenticatorId});
-
-  return res;
+  await authsignal.deleteAuthenticator({userId, userAuthenticatorId});
 };

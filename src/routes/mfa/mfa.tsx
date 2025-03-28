@@ -30,17 +30,12 @@ export function Mfa() {
   });
 
   useEffect(() => {
-    const emailChallenge = async () => {
-      if (!location.state?.token || !location.state?.email || !location.state?.session) {
-        navigate("/login");
-        return;
-      }
+    if (!location.state?.token || !location.state?.email || !location.state?.session) {
+      navigate("/login");
+      return;
+    }
 
-      authsignal.setToken(location.state.token);
-      await authsignal.email.challenge();
-    };
-
-    emailChallenge();
+    authsignal.setToken(location.state.token);
   }, [location.state, navigate]);
 
   const handleResendCode = async () => {
